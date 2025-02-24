@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "1.9.23"
 }
 
-group = "com.example"
+group = "com.probability"
 version = "1.0.0"
 
 repositories {
