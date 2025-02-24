@@ -1,4 +1,4 @@
-package com.example
+package com.probability
 
 import kotlin.random.Random
 
