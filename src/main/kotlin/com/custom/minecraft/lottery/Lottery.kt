@@ -1,8 +1,8 @@
-package com.probability
+package com.custom.minecraft.lottery
 
 import kotlin.random.Random
 
-class WeightedRandom<T> {
+class Lottery<T> {
 
     private val items = mutableListOf<Pair<T, Int>>()
     private var totalWeight: Int = 0
@@ -13,7 +13,7 @@ class WeightedRandom<T> {
      * @param weight アイテムの重み（1以上の整数）
      * @return 自身（連続追加が可能になります）
      */
-    fun add(item: T, weight: Int): WeightedRandom<T> {
+    fun add(item: T, weight: Int): Lottery<T> {
         require(weight > 0) { "Weight must be positive" }
         items.add(item to weight)
         totalWeight += weight
@@ -42,8 +42,8 @@ class WeightedRandom<T> {
      * Map の key がアイテム、value が重みとなります。
      */
     companion object {
-        fun <T> fromMap(map: Map<T, Int>): WeightedRandom<T> {
-            val weightedRandom = WeightedRandom<T>()
+        fun <T> fromMap(map: Map<T, Int>): Lottery<T> {
+            val weightedRandom = Lottery<T>()
             map.forEach { (item, weight) ->
                 weightedRandom.add(item, weight)
             }
