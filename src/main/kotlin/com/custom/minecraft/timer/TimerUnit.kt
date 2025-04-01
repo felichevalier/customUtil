@@ -1,8 +1,8 @@
 package com.custom.minecraft.timer
 
-import com.custom.minecraft.command.TimerCommandConstants.HOUR_UNIT
-import com.custom.minecraft.command.TimerCommandConstants.MINUTE_UNIT
-import com.custom.minecraft.command.TimerCommandConstants.SECOND_UNIT
+import com.custom.minecraft.timer.TimerConstants.HOUR_UNIT
+import com.custom.minecraft.timer.TimerConstants.MINUTE_UNIT
+import com.custom.minecraft.timer.TimerConstants.SECOND_UNIT
 
 enum class TimerUnit(private val unit: String, val tick: Long) {
     SECOND(SECOND_UNIT, 20L),

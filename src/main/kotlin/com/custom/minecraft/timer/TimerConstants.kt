@@ -1,6 +1,6 @@
-package com.custom.minecraft.command
+package com.custom.minecraft.timer
 
-object TimerCommandConstants {
+object TimerConstants {
     val TIMER_COMMAND: String = "timer"
     val SUB_COMMAND_SET: String = "set"
     val SUB_COMMAND_REMOVE: String = "remove"
