@@ -16,40 +16,48 @@ class TitleMessage {
     private var fadeOut: Duration = Duration.ofMillis(500)
     private var players: MutableList<Player> = mutableListOf()
 
-    fun setTitle(title: String) {
+    fun setTitle(title: String): TitleMessage {
         this.title = title
+        return this
     }
 
-    fun setSubTitle(subTitle: String) {
+    fun setSubTitle(subTitle: String): TitleMessage {
         this.subTitle = subTitle
+        return this
     }
 
-    fun setColor(color: NamedTextColor) {
+    fun setColor(color: NamedTextColor): TitleMessage {
         this.color = color
+        return this
     }
 
-    fun setFadeIn(fadeIn: Duration) {
+    fun setFadeIn(fadeIn: Duration): TitleMessage {
         this.fadeIn = fadeIn
+        return this
     }
 
-    fun setStay(stay: Duration) {
+    fun setStay(stay: Duration): TitleMessage {
         this.stay = stay
+        return this
     }
 
-    fun setFadeOut(fadeOut: Duration) {
+    fun setFadeOut(fadeOut: Duration): TitleMessage {
         this.fadeOut = fadeOut
+        return this
     }
 
-    fun setPlayer(player: Player) {
+    fun setPlayer(player: Player): TitleMessage {
         players.add(player)
+        return this
     }
 
-    fun setPlayers(players: List<Player>) {
+    fun setPlayers(players: List<Player>): TitleMessage {
         for (player in players) {
             if (!players.contains(player)) {
                 setPlayer(player)
             }
         }
+        return this
     }
 
     // タイトルを表示
