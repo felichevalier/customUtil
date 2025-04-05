@@ -51,7 +51,7 @@ class TitleMessage {
         return this
     }
 
-    fun setPlayers(players: Collection<Player>): TitleMessage {
+    fun setPlayers(players: List<Player>): TitleMessage {
         for (player in players) {
             if (!players.contains(player)) {
                 setPlayer(player)

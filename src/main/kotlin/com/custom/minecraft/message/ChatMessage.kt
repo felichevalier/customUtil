@@ -25,7 +25,7 @@ class ChatMessage {
         return this
     }
 
-    fun setPlayers(players: Collection<Player>): ChatMessage {
+    fun setPlayers(players: List<Player>): ChatMessage {
         for (player in players) {
             if (!players.contains(player)) {
                 setPlayer(player)
