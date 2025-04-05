@@ -10,24 +10,28 @@ class ChatMessage {
     private var color: NamedTextColor = NamedTextColor.WHITE
     private var players: MutableList<Player> = mutableListOf()
 
-    fun setMessage(message: String) {
+    fun setMessage(message: String): ChatMessage {
         this.message = message
+        return this
     }
 
-    fun setColor(color: NamedTextColor) {
+    fun setColor(color: NamedTextColor): ChatMessage {
         this.color = color
+        return this
     }
 
-    fun setPlayer(player: Player) {
+    fun setPlayer(player: Player): ChatMessage {
         players.add(player)
+        return this
     }
 
-    fun setPlayers(players: List<Player>) {
+    fun setPlayers(players: List<Player>): ChatMessage {
         for (player in players) {
             if (!players.contains(player)) {
                 setPlayer(player)
             }
         }
+        return this
     }
 
     fun show() {
