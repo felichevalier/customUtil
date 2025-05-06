@@ -60,16 +60,20 @@ class MinecraftTimer(private val plugin: JavaPlugin,private val listener: TimerL
                 SECOND -> {
                     val title = "残り時間: ${timerEntity.time}秒"
                     countTimer(SECOND.tick, title)
+                    println(title)
                 }
                 MINUTE -> {
                     val title = "残り時間:${timerEntity.time}分"
                     countTimer(MINUTE.tick, title)
+                    println(title)
                 }
                 HOUR -> {
                     val title = "残り時間:${timerEntity.time}時間"
                     countTimer(MINUTE.tick, title)
+                    println(title)
                 }
                 OTHER -> {
+                    println("設定時間の単位が不正です")
                     result = false
                 }
             }
