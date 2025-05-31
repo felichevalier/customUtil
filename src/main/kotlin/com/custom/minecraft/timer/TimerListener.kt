@@ -2,13 +2,13 @@ package com.custom.minecraft.timer
 
 interface TimerListener {
 
-    fun onStartTimer(isSuccess: Boolean) {}
+    fun onStartTimer(isSuccess: Boolean)
 
-    fun onResumeTimer() {}
+    fun onResumeTimer()
 
-    fun onUpdateTimer(time: Int) {}
+    fun onUpdateTimer(time: Int)
 
-    fun onPauseTimer() {}
+    fun onPauseTimer()
 
-    fun onFinishTimer() {}
+    fun onFinishTimer()
 }
