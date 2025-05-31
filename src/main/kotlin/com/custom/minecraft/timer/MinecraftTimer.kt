@@ -22,7 +22,7 @@ class MinecraftTimer(private val plugin: JavaPlugin,private val listener: TimerL
     private var isPaused: Boolean = false
     private lateinit var bossBar: BossBar
 
-    fun setTimer(timerEntity: TimerEntity): MinecraftTimer {
+    fun setTimer(timerEntity: TimerEntity, showBossBar: Boolean = true): MinecraftTimer {
         if (isRunning || ::bossBar.isInitialized) {
             bossBar.removeAll()
         }
@@ -37,7 +37,7 @@ class MinecraftTimer(private val plugin: JavaPlugin,private val listener: TimerL
             bossBar.addPlayer(player)
         }
         bossBar.progress = 1.0
-        bossBar.isVisible = true
+        bossBar.isVisible = showBossBar
         this.timerEntity = timerEntity
         return this
     }
