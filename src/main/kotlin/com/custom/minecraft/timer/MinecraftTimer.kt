@@ -13,7 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 import java.time.Duration
 
-class MinecraftTimer(private val plugin: JavaPlugin,private val listener: TimerListener) {
+class MinecraftTimer(private val plugin: JavaPlugin, private val listener: TimerListener) {
 
     private lateinit var timerEntity: TimerEntity
     private var bossBarColor: BarColor = BarColor.WHITE
@@ -60,20 +60,20 @@ class MinecraftTimer(private val plugin: JavaPlugin,private val listener: TimerL
                 SECOND -> {
                     val title = "残り時間: ${timerEntity.time}秒"
                     countTimer(SECOND.tick, title)
-                    println(title)
+                    plugin.logger.info(title)
                 }
                 MINUTE -> {
                     val title = "残り時間:${timerEntity.time}分"
                     countTimer(MINUTE.tick, title)
-                    println(title)
+                    plugin.logger.info(title)
                 }
                 HOUR -> {
                     val title = "残り時間:${timerEntity.time}時間"
                     countTimer(MINUTE.tick, title)
-                    println(title)
+                    plugin.logger.info(title)
                 }
                 OTHER -> {
-                    println("設定時間の単位が不正です")
+                    plugin.logger.info("設定時間の単位が不正です")
                     result = false
                 }
             }
@@ -104,6 +104,7 @@ class MinecraftTimer(private val plugin: JavaPlugin,private val listener: TimerL
     }
 
     private fun countTimer(tick: Long, title: String) {
+        val totalTime: Int = timerEntity.time
         object: BukkitRunnable() {
             override fun run() {
                 if (!isPaused) {
@@ -116,8 +117,9 @@ class MinecraftTimer(private val plugin: JavaPlugin,private val listener: TimerL
                         finishTimer()
                         cancel()
                     }
-                    val progress: Double = timerEntity.time.toDouble() / timerEntity.time
+                    val progress: Double = timerEntity.time.toDouble() / totalTime
                     bossBar.progress = progress
+                    plugin.logger.info("progress = $progress")
                     updateTimer()
                 }
             }
