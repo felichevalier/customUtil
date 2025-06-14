@@ -41,8 +41,10 @@ class ChatMessage {
     fun show() {
         // メッセージ
         val messageComponent: Component = Component.text(message).color(color)
+        println("setPlayers player = $players, messageComponent = $messageComponent")
         if (players.isNotEmpty()) {
             for (player in players) {
+                println("player = $player")
                 if (player.isOnline) {
                     player.sendMessage(messageComponent)
                 }
