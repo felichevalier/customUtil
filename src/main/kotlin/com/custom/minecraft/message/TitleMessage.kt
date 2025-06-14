@@ -18,49 +18,49 @@ class TitleMessage {
 
     fun setTitle(title: String): TitleMessage {
         this.title = title
-        println("setTitle title = $title")
+        println("TitleMessage setTitle title = $title")
         return this
     }
 
     fun setSubTitle(subTitle: String): TitleMessage {
         this.subTitle = subTitle
-        println("setSubTitle subTitle = $subTitle")
+        println("TitleMessage setSubTitle subTitle = $subTitle")
         return this
     }
 
     fun setColor(color: NamedTextColor): TitleMessage {
         this.color = color
-        println("setColor color = $color")
+        println("TitleMessage setColor color = $color")
         return this
     }
 
     fun setFadeIn(fadeIn: Duration): TitleMessage {
         this.fadeIn = fadeIn
-        println("setFadeIn fadeIn = $fadeIn")
+        println("TitleMessage setFadeIn fadeIn = $fadeIn")
         return this
     }
 
     fun setStay(stay: Duration): TitleMessage {
         this.stay = stay
-        println("setStay stay = $stay")
+        println("TitleMessage setStay stay = $stay")
         return this
     }
 
     fun setFadeOut(fadeOut: Duration): TitleMessage {
         this.fadeOut = fadeOut
-        println("setFadeOut fadeOut = $fadeOut")
+        println("TitleMessage setFadeOut fadeOut = $fadeOut")
         return this
     }
 
     fun setPlayer(player: Player): TitleMessage {
         players.add(player)
-        println("setPlayer player = $player")
+        println("TitleMessage setPlayer player = $player")
         return this
     }
 
     fun setPlayers(players: Collection<Player>): TitleMessage {
         for (player in players) {
-            println("setPlayers player = $player")
+            println("TitleMessage setPlayers player = $player")
             if (!players.contains(player)) {
                 setPlayer(player)
             }
@@ -79,16 +79,16 @@ class TitleMessage {
         val title = Title.title(titleComponent, subTitleComponent, times)
         if (players.isNotEmpty()) {
             for (player in players) {
-                println("showMessage player = $player")
+                println("TitleMessage showMessage player = $player")
                 if (player.isOnline) {
                     player.showTitle(title)
-                    println("showTitle title = $title")
+                    println("TitleMessage showTitle title = $title")
                 } else {
-                    println("$player is offline")
+                    println("TitleMessage $player is offline")
                 }
             }
         } else {
-            println("players is empty")
+            println("TitleMessage players is empty")
         }
     }
 }
