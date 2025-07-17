@@ -54,14 +54,14 @@ class TitleMessage {
 
     fun setPlayer(player: Player): TitleMessage {
         players.add(player)
-        println("TitleMessage setPlayer player = $player")
+        println("TitleMessage setPlayer player = $player、players = $players")
         return this
     }
 
     fun setPlayers(players: Collection<Player>): TitleMessage {
         for (player in players) {
             println("TitleMessage setPlayers player = $player")
-            if (!players.contains(player)) {
+            if (!this.players.contains(player)) {
                 setPlayer(player)
             }
         }

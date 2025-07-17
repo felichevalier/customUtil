@@ -14,12 +14,15 @@ class ReturnStickEventListener: Listener {
     fun onItemInteract(event: PlayerInteractEvent) {
         val player: Player = event.player
         val item: Material = event.item?.type ?: return
+        println("player = $player")
         if (item == Material.CARROT_ON_A_STICK && item.name == STICK_NAME) {
             val world: World = player.server.worlds.find { world ->
+                println("world.environment = ${world.environment}")
                 world.environment == World.Environment.NORMAL
             } ?: return
 
             player.teleport(world.spawnLocation)
+            println("teleported")
         }
     }
 }
