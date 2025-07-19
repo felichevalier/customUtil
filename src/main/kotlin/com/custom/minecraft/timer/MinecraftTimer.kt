@@ -18,19 +18,16 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
     private var isPaused: Boolean = false
     private var cancelTimer: Boolean = false
     private lateinit var bossBar: BossBar
+    private lateinit var title: String
 
     // タイマーを設定
     fun setTimer(timerEntity: TimerEntity, showBossBar: Boolean = true): MinecraftTimer {
         if (isRunning || ::bossBar.isInitialized) {
             bossBar.removeAll()
         }
+        this.timerEntity = timerEntity
         // ボスバーの上の表示
-        val title = when (timerEntity.timerUnit) {
-            SECOND -> "残り時間: ${timerEntity.time}秒"
-            MINUTE -> "残り時間: ${timerEntity.time}分"
-            HOUR -> "残り時間: ${timerEntity.time}時間"
-            OTHER -> ""
-        }
+        title = getBossBarTitle()
         // ボスバーの設定
         bossBar = Bukkit.createBossBar(title, bossBarColor, bossBarStyle)
         for (player in timerEntity.targetPlayers) {
@@ -59,18 +56,15 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
             }
             when (timerEntity.timerUnit) {
                 SECOND -> {
-                    val title = "残り時間: ${timerEntity.time}秒"
-                    countDownTimer(SECOND.tick, title)
+                    countDownTimer(SECOND.tick)
                     plugin.logger.info(title)
                 }
                 MINUTE -> {
-                    val title = "残り時間:${timerEntity.time}分"
-                    countDownTimer(MINUTE.tick, title)
+                    countDownTimer(MINUTE.tick)
                     plugin.logger.info(title)
                 }
                 HOUR -> {
-                    val title = "残り時間:${timerEntity.time}時間"
-                    countDownTimer(MINUTE.tick, title)
+                    countDownTimer(MINUTE.tick)
                     plugin.logger.info(title)
                 }
                 OTHER -> {
@@ -108,7 +102,7 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
         listener.onFinishTimer()
     }
 
-    private fun countDownTimer(tick: Long, title: String) {
+    private fun countDownTimer(tick: Long) {
         val totalTime: Int = timerEntity.time
         object: BukkitRunnable() {
             override fun run() {
@@ -117,7 +111,7 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
                     cancel()
                 } else if (!isPaused) {
                     timerEntity.time -= 1
-                    bossBar.setTitle(title)
+                    bossBar.setTitle(getBossBarTitle())
                     if (timerEntity.time <= 0) {
                         if (timerEntity.isTimerMessageEnabled) {
                             val titleMessage = TitleMessage()
@@ -133,5 +127,15 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
                 }
             }
         }.runTaskTimer(plugin, tick, tick)
+    }
+
+    private fun getBossBarTitle(): String {
+        // ボスバーの上の表示
+        return when (timerEntity.timerUnit) {
+            SECOND -> "残り時間: ${timerEntity.time}秒"
+            MINUTE -> "残り時間: ${timerEntity.time}分"
+            HOUR -> "残り時間: ${timerEntity.time}時間"
+            OTHER -> ""
+        }
     }
 }
