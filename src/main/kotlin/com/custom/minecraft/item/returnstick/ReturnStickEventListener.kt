@@ -17,7 +17,7 @@ class ReturnStickEventListener: Listener {
         val player: Player = event.player
         val item: ItemStack = event.item ?: return
         println("player = $player, item.type = ${item.type}, item.displayName = ${item.displayName()}")
-        if (item.type == Material.CARROT_ON_A_STICK && item.displayName() == Component.text(STICK_NAME)) {
+        if (item.type == Material.CARROT_ON_A_STICK && item.itemMeta.displayName() == Component.text(STICK_NAME)) {
             val world: World = player.server.worlds.find { world ->
                 println("world.environment = ${world.environment}")
                 world.environment == World.Environment.NORMAL
