@@ -1,60 +1,114 @@
 package com.custom.minecraft.timer
-
 import com.custom.minecraft.message.TitleMessage
 import com.custom.minecraft.timer.TimerUnit.*
 import org.bukkit.Bukkit
 import org.bukkit.boss.BarColor
 import org.bukkit.boss.BarStyle
 import org.bukkit.boss.BossBar
+import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
+import org.bukkit.scheduler.BukkitTask
 
 class MinecraftTimer(private val plugin: JavaPlugin, private val listener: TimerListener) {
 
-    private lateinit var timerEntity: TimerEntity
+    // タイマーの単位
+    private var timerUnit: TimerUnit = SECOND
+    // 時間
+    private var time: Int = 0
+    // タイマー表示の対象プレイヤー
+    private val targetPlayers: MutableList<Player> = mutableListOf()
+    // 開始/終了時のメッセージを表示するのか
+    private var isTimerMessageEnabled: Boolean = true
+    // 開始/終了時のメッセージ
+    private var startMessage: String = "スタート"
+    private var finishMessage: String = "終了"
+    // ボスバーの設定
     private var bossBarColor: BarColor = BarColor.WHITE
     private var bossBarStyle: BarStyle = BarStyle.SOLID
+    private var bossBarVisibility: Boolean = true
+    // タイマー実行中フラグ
     private var isRunning: Boolean = false
+    // タイマー一時停止フラグ
     private var isPaused: Boolean = false
-    private var cancelTimer: Boolean = false
+
+    // ボスバー
     private lateinit var bossBar: BossBar
+    // タイトル
     private lateinit var title: String
 
+    // runnable
+    private lateinit var timerTask: BukkitTask
+
     // タイマーを設定
-    fun setTimer(timerEntity: TimerEntity, showBossBar: Boolean = true): MinecraftTimer {
-        if (isRunning || ::bossBar.isInitialized) {
-            bossBar.removeAll()
-        }
-        this.timerEntity = timerEntity
-        // ボスバーの上の表示
-        title = getBossBarTitle()
-        // ボスバーの設定
-        bossBar = Bukkit.createBossBar(title, bossBarColor, bossBarStyle)
-        for (player in timerEntity.targetPlayers) {
-            bossBar.addPlayer(player)
-        }
-        bossBar.progress = 1.0
-        bossBar.isVisible = showBossBar
-        this.timerEntity = timerEntity
+    fun setTimer(time: Int, timerUnit: TimerUnit = SECOND): MinecraftTimer {
+        this.timerUnit = timerUnit
+        this.time = time
+
         return this
     }
 
-    fun setTimerBarOption(color: BarColor = BarColor.WHITE, style: BarStyle = BarStyle.SOLID): MinecraftTimer {
-        bossBarColor = color
-        bossBarStyle = style
+    fun bossBarVisibility(isVisible: Boolean): MinecraftTimer {
+        this.bossBarVisibility = isVisible
+        return this
+    }
+
+    fun setBossBarColor(color: BarColor): MinecraftTimer {
+        this.bossBarColor = color
+        return this
+    }
+
+    fun setBossBarStyle(style: BarStyle): MinecraftTimer {
+        this.bossBarStyle = style
+        return this
+    }
+
+    fun setTargetPlayer(player: Player): MinecraftTimer {
+        this.targetPlayers.add(player)
+        return this
+    }
+
+    fun setTargetPlayers(players: Collection<Player>): MinecraftTimer {
+        this.targetPlayers.addAll(players)
+        return this
+    }
+
+    fun setTitle(start: String = "", finish: String = ""): MinecraftTimer {
+        if (start.isNotEmpty()) {
+            this.startMessage = start
+        }
+        if (finish.isNotEmpty()) {
+            this.finishMessage = finish
+        }
+        return this
+    }
+
+    fun timerVisibility(isVisible: Boolean): MinecraftTimer {
+        this.isTimerMessageEnabled = isVisible
         return this
     }
 
     fun startTimer() {
         var result = true
-        if (isRunning) {
+        if (isRunning || ::bossBar.isInitialized) {
             result = false
+            bossBar.removeAll()
         } else {
-            if (timerEntity.isTimerMessageEnabled) {
-                val title = TitleMessage()
-                title.setTitle(timerEntity.startMessage).setPlayers(timerEntity.targetPlayers).show()
+            // ボスバーの上の表示
+            title = getBossBarTitle()
+            // ボスバーの設定
+            bossBar = Bukkit.createBossBar(title, bossBarColor, bossBarStyle)
+            for (player in targetPlayers) {
+                bossBar.addPlayer(player)
             }
-            when (timerEntity.timerUnit) {
+            bossBar.progress = 1.0
+            bossBar.isVisible = bossBarVisibility
+
+            if (isTimerMessageEnabled) {
+                val title = TitleMessage()
+                title.setTitle(startMessage).setPlayers(targetPlayers).show()
+            }
+            when (timerUnit) {
                 SECOND -> {
                     countDownTimer(SECOND.tick)
                     plugin.logger.info(title)
@@ -78,7 +132,8 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
     }
 
     fun stopTimer() {
-        cancelTimer = true
+        timerTask.cancel()
+        finishTimer()
     }
 
     fun resumeTimer() {
@@ -87,7 +142,7 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
     }
 
     fun updateTimer() {
-        listener.onUpdateTimer(timerEntity.time)
+        listener.onUpdateTimer(time)
     }
 
     fun pauseTimer() {
@@ -99,28 +154,27 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
         isRunning = false
         isPaused = false
         bossBar.removeAll()
+        timerTask.cancel()
         listener.onFinishTimer()
+        plugin.logger.info("finishTimer")
     }
 
     private fun countDownTimer(tick: Long) {
-        val totalTime: Int = timerEntity.time
-        object: BukkitRunnable() {
+        val totalTime: Int = time
+        timerTask = object: BukkitRunnable() {
             override fun run() {
-                if (cancelTimer) {
-                    finishTimer()
-                    cancel()
-                } else if (!isPaused) {
-                    timerEntity.time -= 1
+                if (!isPaused) {
+                    time -= 1
                     bossBar.setTitle(getBossBarTitle())
-                    if (timerEntity.time <= 0) {
-                        if (timerEntity.isTimerMessageEnabled) {
+                    plugin.logger.info("time = $time")
+                    if (time <= 0) {
+                        if (isTimerMessageEnabled) {
                             val titleMessage = TitleMessage()
-                            titleMessage.setTitle(timerEntity.finishMessage).setPlayers(timerEntity.targetPlayers).show()
+                            titleMessage.setTitle(finishMessage).setPlayers(targetPlayers).show()
                         }
                         finishTimer()
-                        cancel()
                     }
-                    val progress: Double = timerEntity.time.toDouble() / totalTime
+                    val progress: Double = time.toDouble() / totalTime
                     bossBar.progress = progress
                     plugin.logger.info("progress = $progress")
                     updateTimer()
@@ -131,10 +185,10 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
 
     private fun getBossBarTitle(): String {
         // ボスバーの上の表示
-        return when (timerEntity.timerUnit) {
-            SECOND -> "残り時間: ${timerEntity.time}秒"
-            MINUTE -> "残り時間: ${timerEntity.time}分"
-            HOUR -> "残り時間: ${timerEntity.time}時間"
+        return when (timerUnit) {
+            SECOND -> "残り時間: ${time}秒"
+            MINUTE -> "残り時間: ${time}分"
+            HOUR -> "残り時間: ${time}時間"
             OTHER -> ""
         }
     }
