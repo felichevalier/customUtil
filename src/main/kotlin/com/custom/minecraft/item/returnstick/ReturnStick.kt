@@ -18,21 +18,23 @@ class ReturnStick {
 
     companion object {
         const val STICK_NAME: String = "戻り棒"
+        private const val GIVE_STICK_COMMAND: String = "giveStick"
+        val DEATH_PLAYER_LIST: MutableList<Player> = mutableListOf()
+        lateinit var javaPlugin: JavaPlugin
+        lateinit var instance: ReturnStick
     }
-    private val giveStickCommand: String = "giveStick"
-    private lateinit var javaPlugin: JavaPlugin
+
 
     fun init(plugin: JavaPlugin): ReturnStick {
         javaPlugin = plugin
+        instance = this
         javaPlugin.server.pluginManager.registerEvents(ReturnStickEventListener(), javaPlugin)
         return this
     }
 
-    fun giveStick(players: Collection<Player>) {
-        // インベントリに追加
-        for (player: Player in players) {
-            giveStick(player)
-        }
+    fun isReturnStick(item: ItemStack): Boolean {
+        return (item.type == Material.CARROT_ON_A_STICK
+                && item.itemMeta.displayName() == Component.text(STICK_NAME))
     }
 
     fun giveStick(player: Player) {
@@ -49,9 +51,19 @@ class ReturnStick {
     }
 
     fun returnSpawnLocation(player: Player) {
-        val world: World = javaPlugin.server.worlds
-            .find { it.environment == World.Environment.NORMAL } ?: return
+        val world: World = player.server.worlds
+            .find { world ->
+                javaPlugin.logger.info("world.environment = ${world.environment}")
+                world.environment == World.Environment.NORMAL
+            } ?: return
         player.teleport(world.spawnLocation)
+    }
+
+    fun giveStick(players: Collection<Player>) {
+        // インベントリに追加
+        for (player: Player in players) {
+            giveStick(player)
+        }
     }
 
     fun enableCommand() {
@@ -62,7 +74,7 @@ class ReturnStick {
             Function.identity()
         )
 
-        val builder: Command.Builder<CommandSender> = manager.commandBuilder(giveStickCommand)
+        val builder: Command.Builder<CommandSender> = manager.commandBuilder(GIVE_STICK_COMMAND)
 
         builder.handler { ctx ->
             val sender: CommandSender = ctx.sender
@@ -71,5 +83,4 @@ class ReturnStick {
             }
         }
     }
-
 }
