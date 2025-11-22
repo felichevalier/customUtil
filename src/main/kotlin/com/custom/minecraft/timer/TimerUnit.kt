@@ -10,12 +10,14 @@ enum class TimerUnit(private val unit: String, val tick: Long) {
     HOUR(HOUR_UNIT, MINUTE.tick * 60L),
     OTHER("other", 0L);
 
-    fun getUnit(unitName: String): TimerUnit {
-        for (unitType in entries) {
-            if (unitName == unitType.unit) {
-                return unitType
+    companion object {
+        fun getUnit(unitName: String): TimerUnit {
+            for (unitType in entries) {
+                if (unitName == unitType.unit) {
+                    return unitType
+                }
             }
+            return OTHER
         }
-        return OTHER
     }
 }
