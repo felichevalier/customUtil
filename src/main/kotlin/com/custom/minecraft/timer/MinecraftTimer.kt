@@ -91,41 +91,42 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
     fun startTimer() {
         var result = false
 
-        if (::bossBar.isInitialized) {
-            if (isRunning) {
-                finishTimer()
-            }
-            // ボスバーの上の表示
-            title = getBossBarTitle()
-            // ボスバーの設定
-            bossBar = Bukkit.createBossBar(title, bossBarColor, bossBarStyle)
-            for (player in targetPlayers) {
-                bossBar.addPlayer(player)
-            }
-            bossBar.progress = 1.0
-            bossBar.isVisible = bossBarVisibility
+        if (isRunning) {
+            finishTimer()
+        }
+        // ボスバーの上の表示
+        title = getBossBarTitle()
+        // ボスバーの設定
+        bossBar = Bukkit.createBossBar(title, bossBarColor, bossBarStyle)
+        for (player in targetPlayers) {
+            bossBar.addPlayer(player)
+        }
+        bossBar.progress = 1.0
+        bossBar.isVisible = bossBarVisibility
 
-            if (isTimerMessageEnabled) {
-                val title = TitleMessage()
-                title.setTitle(startMessage).setPlayers(targetPlayers).show()
+        if (isTimerMessageEnabled) {
+            val title = TitleMessage()
+            title.setTitle(startMessage).setPlayers(targetPlayers).show()
+        }
+        when (timerUnit) {
+            SECOND -> {
+                countDownTimer(SECOND.tick)
+                plugin.logger.info(title)
+                result = true
             }
-            when (timerUnit) {
-                SECOND -> {
-                    countDownTimer(SECOND.tick)
-                    plugin.logger.info(title)
-                }
-                MINUTE -> {
-                    countDownTimer(MINUTE.tick)
-                    plugin.logger.info(title)
-                }
-                HOUR -> {
-                    countDownTimer(MINUTE.tick)
-                    plugin.logger.info(title)
-                }
-                OTHER -> {
-                    plugin.logger.info("設定時間の単位が不正です")
-                    result = false
-                }
+            MINUTE -> {
+                countDownTimer(MINUTE.tick)
+                plugin.logger.info(title)
+                result = true
+            }
+            HOUR -> {
+                countDownTimer(MINUTE.tick)
+                plugin.logger.info(title)
+                result = true
+            }
+            OTHER -> {
+                plugin.logger.info("設定時間の単位が不正です")
+                result = false
             }
         }
         listener.onStartTimer(result)
