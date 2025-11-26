@@ -89,11 +89,12 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
     }
 
     fun startTimer() {
-        var result = true
-        if (isRunning || ::bossBar.isInitialized) {
-            result = false
-            bossBar.removeAll()
-        } else {
+        var result = false
+
+        if (::bossBar.isInitialized) {
+            if (isRunning) {
+                finishTimer()
+            }
             // ボスバーの上の表示
             title = getBossBarTitle()
             // ボスバーの設定
@@ -127,7 +128,6 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
                 }
             }
         }
-
         listener.onStartTimer(result)
     }
 
