@@ -1,6 +1,7 @@
 package com.custom.minecraft.timer
 import com.custom.minecraft.message.TitleMessage
-import com.custom.minecraft.timer.TimerUnit.*
+import com.custom.minecraft.timer.domain.TimerEvent
+import com.custom.minecraft.timer.listener.TimerListener
 import org.bukkit.Bukkit
 import org.bukkit.boss.BarColor
 import org.bukkit.boss.BarStyle
@@ -10,12 +11,19 @@ import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.scheduler.BukkitTask
 
+/**
+ * ボスバーで残り時間を共有するカウントダウンタイマー。
+ * TimerListener へ状態を通知しつつ、指定プレイヤーへタイトルや進捗を表示する。
+ */
 class MinecraftTimer(private val plugin: JavaPlugin, private val listener: TimerListener) {
+    companion object {
+        // 1 秒を表す tick 数
+        private const val ONE_SECOND_TICKS: Long = 20L
+    }
 
-    // タイマーの単位
-    private var timerUnit: TimerUnit = SECOND
-    // 時間
-    private var time: Int = 0
+    // 設定された合計秒数と現在残り秒数
+    private var totalSeconds: Int = 0
+    private var remainingSeconds: Int = 0
     // タイマー表示の対象プレイヤー
     private val targetPlayers: MutableList<Player> = mutableListOf()
     // 開始/終了時のメッセージを表示するのか
@@ -40,11 +48,13 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
     // runnable
     private lateinit var timerTask: BukkitTask
 
-    // タイマーを設定
-    fun setTimer(time: Int, timerUnit: TimerUnit = SECOND): MinecraftTimer {
-        this.timerUnit = timerUnit
-        this.time = time
+    // タイマーリスナーを保持
+    private val listeners = mutableListOf<TimerListener>()
 
+    // タイマーを設定（h/m/s を直接指定）
+    fun setTimer(hours: Int = 0, minutes: Int = 0, seconds: Int = 0): MinecraftTimer {
+        this.totalSeconds = (hours * 3600) + (minutes * 60) + seconds
+        this.remainingSeconds = totalSeconds
         return this
     }
 
@@ -88,11 +98,33 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
         return this
     }
 
+    fun addListener(listener: TimerListener): MinecraftTimer {
+        listeners.add(listener)
+        return this
+    }
+
+    fun removeListener(listener: TimerListener) {
+        listeners.remove(listener)
+    }
+
+    private fun emit(event: TimerEvent) {
+        listeners.forEach { it.onEvent(event) }
+    }
+
+    /**
+     * タイマーを開始する。すでに実行中なら一度終了してから再度開始する。
+     */
     fun startTimer() {
         var result = false
 
         if (isRunning) {
             finishTimer()
+        }
+        isRunning = true
+        remainingSeconds = totalSeconds
+        if (totalSeconds <= 0) {
+            emit(TimerEvent.Start(false))
+            return
         }
         // ボスバーの上の表示
         title = getBossBarTitle()
@@ -108,74 +140,80 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
             val title = TitleMessage()
             title.setTitle(startMessage).setPlayers(targetPlayers).show()
         }
-        when (timerUnit) {
-            SECOND -> {
-                countDownTimer(SECOND.tick)
-                plugin.logger.info(title)
-                result = true
-            }
-            MINUTE -> {
-                countDownTimer(MINUTE.tick)
-                plugin.logger.info(title)
-                result = true
-            }
-            HOUR -> {
-                countDownTimer(MINUTE.tick)
-                plugin.logger.info(title)
-                result = true
-            }
-            OTHER -> {
-                plugin.logger.info("設定時間の単位が不正です")
-                result = false
-            }
-        }
-        listener.onStartTimer(result)
+        countDownTimer(ONE_SECOND_TICKS)
+        plugin.logger.info(title)
+        emit(TimerEvent.Start(true, remainingSeconds))
     }
 
+    /**
+     * 外部から強制的にタイマーを終了させる。
+     */
     fun stopTimer() {
-        timerTask.cancel()
+        if (::timerTask.isInitialized) {
+            timerTask.cancel()
+        }
         finishTimer()
     }
 
+    /**
+     * 一時停止中のタイマーを再開する。
+     */
     fun resumeTimer() {
         isPaused = false
-        listener.onResumeTimer()
+        emit(TimerEvent.Resume)
     }
 
     fun updateTimer() {
-        listener.onUpdateTimer(time)
+        emit(TimerEvent.Tick(remainingSeconds))
     }
 
+    /**
+     * タイマーを一時停止する。
+     */
     fun pauseTimer() {
         isPaused = true
-        listener.onPauseTimer()
+        emit(TimerEvent.Pause)
     }
 
+    /**
+     * ボスバーのクリーンアップとリスナー通知をまとめて行う。
+     */
     private fun finishTimer() {
         isRunning = false
         isPaused = false
-        bossBar.removeAll()
-        timerTask.cancel()
-        listener.onFinishTimer()
+        if (::bossBar.isInitialized) {
+            bossBar.removeAll()
+        }
+        if (::timerTask.isInitialized && !timerTask.isCancelled) {
+            timerTask.cancel()
+        }
+        emit(TimerEvent.Finish)
         plugin.logger.info("finishTimer")
     }
 
+    /**
+     * 指定 tick 間隔で残り時間を減算し、進捗更新や終了処理を行う。
+     */
     private fun countDownTimer(tick: Long) {
-        val totalTime: Int = time
+        if (totalSeconds <= 0) {
+            finishTimer()
+            return
+        }
         timerTask = object: BukkitRunnable() {
             override fun run() {
                 if (!isPaused) {
-                    time -= 1
+                    remainingSeconds -= 1
                     bossBar.setTitle(getBossBarTitle())
-                    plugin.logger.info("time = $time")
-                    if (time <= 0) {
+                    plugin.logger.info("time = $remainingSeconds")
+                    if (remainingSeconds <= 0) {
                         if (isTimerMessageEnabled) {
                             val titleMessage = TitleMessage()
                             titleMessage.setTitle(finishMessage).setPlayers(targetPlayers).show()
                         }
                         finishTimer()
+                        return
                     }
-                    val progress: Double = time.toDouble() / totalTime
+                    val progress: Double = remainingSeconds.toDouble() / totalSeconds.toDouble()
                     bossBar.progress = progress
                     plugin.logger.info("progress = $progress")
                     updateTimer()
@@ -185,12 +223,16 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
     }
 
     private fun getBossBarTitle(): String {
-        // ボスバーの上の表示
-        return when (timerUnit) {
-            SECOND -> "残り時間: ${time}秒"
-            MINUTE -> "残り時間: ${time}分"
-            HOUR -> "残り時間: ${time}時間"
-            OTHER -> ""
-        }
+        val timeText = formatAsHms(remainingSeconds)
+        return "残り時間: $timeText"
+    }
+
+    // 常に h/m/s を含む表示用文字列へ変換する（例: 0h0m20s）
+    private fun formatAsHms(totalSeconds: Int): String {
+        val safeSeconds = totalSeconds.coerceAtLeast(0)
+        val hours = safeSeconds / 3600
+        val minutes = (safeSeconds % 3600) / 60
+        val seconds = safeSeconds % 60
+        return "${hours}h${minutes}m${seconds}s"
     }
 }
