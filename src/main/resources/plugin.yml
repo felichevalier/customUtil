@@ -1,4 +1,4 @@
 name: CustomUtil
 version: '2.0'
 main: com.custom.minecraft.test.Test
-api-version: '1.21.7'
+api-version: '1.21.11'
