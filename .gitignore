@@ -43,3 +43,6 @@ bin/
 
 main/test
 main/resources
+
+devserver
+devserver/*

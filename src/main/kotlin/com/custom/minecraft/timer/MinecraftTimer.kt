@@ -51,6 +51,18 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
     // タイマーリスナーを保持
     private val listeners = mutableListOf<TimerListener>()
 
+    fun setTimerHours(hours: Int) {
+        setTimer(hours)
+    }
+
+    fun setTimerMinutes(minutes: Int) {
+        setTimer(minutes = minutes)
+    }
+
+    fun setTimerSeconds(seconds: Int) {
+        setTimer(seconds = seconds)
+    }
+
     // タイマーを設定（h/m/s を直接指定）
     fun setTimer(hours: Int = 0, minutes: Int = 0, seconds: Int = 0): MinecraftTimer {
         this.totalSeconds = (hours * 3600) + (minutes * 60) + seconds
