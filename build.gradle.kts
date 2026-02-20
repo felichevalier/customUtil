@@ -27,23 +27,27 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
-tasks {
-    // Shadow JARのタスク設定
-    shadowJar {
-        archiveFileName.set("${project.name}-${version}.jar")
+val isDev = project.findProperty("isDev") == "true"
+
+if (isDev) {
+    tasks {
+        // Shadow JARのタスク設定
+        shadowJar {
+            archiveFileName.set("${project.name}-${version}.jar")
+        }
+
+        // 通常のJARファイルの生成を無効化
+        jar {
+            enabled = false
+        }
     }
 
-    // 通常のJARファイルの生成を無効化
-    jar {
-        enabled = false
+    tasks.register<Copy>("devServer") {
+        dependsOn(tasks.shadowJar)
+        from(tasks.shadowJar.map { it.archiveFile })
+        into("devserver/plugins")
     }
-}
-
-tasks.register<Copy>("devServer") {
-    dependsOn(tasks.shadowJar)
-    from(tasks.shadowJar.map { it.archiveFile })
-    into("devserver/plugins")
 }
