@@ -127,6 +127,7 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
      * タイマーを開始する。すでに実行中なら一度終了してから再度開始する。
      */
     fun startTimer() {
+        var result = false
 
         if (isRunning) {
             finishTimer()

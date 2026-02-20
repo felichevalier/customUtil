@@ -1,5 +1,7 @@
 plugins {
     kotlin("jvm") version "1.9.23"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+
 }
 
 group = "com.custom"
