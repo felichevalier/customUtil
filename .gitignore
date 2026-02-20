@@ -46,3 +46,5 @@ main/resources
 
 devserver
 devserver/*
+
+gradle.properties
