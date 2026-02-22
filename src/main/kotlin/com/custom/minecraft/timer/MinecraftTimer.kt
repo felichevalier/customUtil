@@ -48,9 +48,6 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
     // runnable
     private lateinit var timerTask: BukkitTask
 
-    // タイマーリスナーを保持
-    private val listeners = mutableListOf<TimerListener>()
-
     fun setTimerHours(hours: Int) {
         setTimer(hours)
     }
@@ -110,17 +107,8 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
         return this
     }
 
-    fun addListener(listener: TimerListener): MinecraftTimer {
-        listeners.add(listener)
-        return this
-    }
-
-    fun removeListener(listener: TimerListener) {
-        listeners.remove(listener)
-    }
-
     private fun emit(event: TimerEvent) {
-        listeners.forEach { it.onEvent(event) }
+        listener.onEvent(event)
     }
 
     /**
@@ -242,9 +230,21 @@ class MinecraftTimer(private val plugin: JavaPlugin, private val listener: Timer
     // 常に h/m/s を含む表示用文字列へ変換する（例: 0h0m20s）
     private fun formatAsHms(totalSeconds: Int): String {
         val safeSeconds = totalSeconds.coerceAtLeast(0)
+        var title = ""
+
+        plugin.logger.info("formatAsHms safeSeconds = $safeSeconds")
         val hours = safeSeconds / 3600
         val minutes = (safeSeconds % 3600) / 60
         val seconds = safeSeconds % 60
-        return "${hours}h${minutes}m${seconds}s"
+
+        plugin.logger.info("formatAsHms hours = $hours, minutes = $minutes, seconds = $seconds")
+        if (hours > 0) {
+            title += "${hours}h"
+        }
+        if (minutes > 0) {
+            title += "${minutes}m"
+        }
+        title += "${seconds}s"
+        return title
     }
 }
